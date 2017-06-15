@@ -19,7 +19,7 @@ _sessions =  [
                 {
                     personId,
                     roomId,
-                    policy_scope
+                    policyScope
                 }
             ]
 """
@@ -35,7 +35,10 @@ def current_session(person_id, room_id):
         if match['roomId'] == room_id:
             return match
 
+
+#
 # EDQoS App API functions
+#
 def get_policy_tags():
     r = requests.get(edqos_app_url + "/api/policy_tags/")
     if r.status_code == 200:
@@ -54,7 +57,16 @@ def get_app_relevance(scope, app):
     if r.status_code == 200:
         return r.json()
 
+def set_app_relevance(scope, app, relevance):
+    data = {'app': app, 'policy': scope, 'relevance': relevance}
+    r = requests.post(edqos_app_url + "/api/relevance/", data=data)
+    if r. status_code == 200:
+        return r.json()
+
+
+#
 # Create bot functions
+#
 def list_policy_tags(incoming_msg):
     tags = get_policy_tags()
     message = ""
@@ -91,26 +103,60 @@ def search_app(incoming_msg):
     if session:
         scope = session['policyScope']
         apps = get_applications(search)
-        if len(apps) > 15:
+        if len(apps) == 0:
+            return "No application name matching {}".format(search)
+        elif len(apps) > 15:
             return "Search yielded {} results; try being more specific"
         for app in apps:
             relevance = get_app_relevance(scope, app)
             message += "* {} has relevance {}\n".format(app, relevance)
     else:
         apps = get_applications(search)
-        if len(apps) > 15:
+        if len(apps) == 0:
+            return "No application name matching {}".format(search)
+        elif len(apps) > 15:
             return "Search yielded {} results; try being more specific"
         for app in apps:
             message += "* {}\n".format(app)
     return message
 
+def set_relevance(incoming_msg):
+    person_id = incoming_msg.personId
+    room_id = incoming_msg.roomId
+    s = re.search('set relevance\s(\S+)\s(\S+)', incoming_msg.text)
+    app = s.group(1) if s else None
+    relevance = s.group(2) if s else None
+    valid_relevance = ['Business-Relevant', 'Default', 'Business-Irrelevant']
+    if not app or not relevance:
+        return "You need to specify an application name and relevance level"
+    elif app not in get_applications(app):
+        return "No application name matching {}"
+    elif relevance not in valid_relevance:
+        return "{} is not a valid relevance; please use: {}".format(relevance, ', '.join(valid_relevance))
+
+    session = current_session(person_id, room_id)
+    scope = session['policyScope']
+    if not scope:
+        return "No policy scope set yet; use \"set policy scope\" to set one."
+
+
+    message = "send"
+    return message
+
+
+#
 # Initialize bot
+#
 bot = SparkBot(bot_app_name, spark_bot_token=spark_token,
                spark_bot_url=bot_url, spark_bot_email=bot_email)
 
-# Add bot commands and run bot
+# Add bot commands
+bot.commands = dict()
 bot.add_command('list policy tags', 'This will list the policy tags configured on APIC EM', list_policy_tags)
 bot.add_command('set policy scope', 'This will set the policy scope that you wish to modify for the session', set_policy_scope)
 bot.add_command('current policy scope', 'This will return the current policy scope for the session', current_policy_scope)
 bot.add_command('search app', 'This will return applications matching search criteria; if scope already set, it will also return the applications relevance level', search_app)
+bot.add_command('set relevance', 'This will set the relevance level for the provided app; ex. set relevance <app name> <relevance>', set_relevance)
+
+# Run bot
 bot.run(host='0.0.0.0', port=5000)
