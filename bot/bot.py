@@ -60,7 +60,7 @@ def get_app_relevance(scope, app):
 def set_app_relevance(scope, app, relevance):
     data = {'app': app, 'policy': scope, 'relevance': relevance}
     r = requests.post(edqos_app_url + "/api/relevance/", data=data)
-    if r. status_code == 200:
+    if r.status_code == 200:
         return r.json()
 
 
@@ -106,7 +106,7 @@ def search_app(incoming_msg):
         if len(apps) == 0:
             return "No application name matching {}".format(search)
         elif len(apps) > 15:
-            return "Search yielded {} results; try being more specific"
+            return "Search yielded {} results; try being more specific".format(len(apps))
         for app in apps:
             relevance = get_app_relevance(scope, app)
             message += "* {} has relevance {}\n".format(app, relevance)
@@ -115,7 +115,7 @@ def search_app(incoming_msg):
         if len(apps) == 0:
             return "No application name matching {}".format(search)
         elif len(apps) > 15:
-            return "Search yielded {} results; try being more specific"
+            return "Search yielded {} results; try being more specific".format(len(apps))
         for app in apps:
             message += "* {}\n".format(app)
     return message
@@ -130,7 +130,7 @@ def set_relevance(incoming_msg):
     if not app or not relevance:
         return "You need to specify an application name and relevance level"
     elif app not in get_applications(app):
-        return "No application name matching {}"
+        return "No application name matching {}".format(app)
     elif relevance not in valid_relevance:
         return "{} is not a valid relevance; please use: {}".format(relevance, ', '.join(valid_relevance))
 
@@ -139,8 +139,13 @@ def set_relevance(incoming_msg):
     if not scope:
         return "No policy scope set yet; use \"set policy scope\" to set one."
 
-
-    message = "send"
+    current_relevance = get_app_relevance(scope, app)
+    if current_relevance == relevance:
+        return "{} is already set to {}; no action needed".format(app, current_relevance)
+    else:
+        task_id = set_app_relevance(scope, app, relevance)
+        if task_id:
+            message = "Success; {} has been set to {}".format(app, relevance)
     return message
 
 
