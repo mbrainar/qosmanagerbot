@@ -126,6 +126,7 @@ def set_relevance(incoming_msg):
     s = re.search('set relevance\s(\S+)\s(\S+)', incoming_msg.text)
     app = s.group(1) if s else None
     relevance = s.group(2) if s else None
+    message = None
     valid_relevance = ['Business-Relevant', 'Default', 'Business-Irrelevant']
     if not app or not relevance:
         return "You need to specify an application name and relevance level"

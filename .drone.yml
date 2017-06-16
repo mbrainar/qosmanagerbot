@@ -10,7 +10,7 @@ build:
 
 publish:
   docker:
-    repo: $$DOCKER_USERNAME/qosmanager
+    repo: $$DOCKER_USERNAME/qosmanagerbot
     tag: latest
     username: $$DOCKER_USERNAME
     password: $$DOCKER_PASSWORD
