@@ -78,11 +78,17 @@ def list_policy_tags(incoming_msg):
 def set_policy_scope(incoming_msg):
     s = re.search('set policy scope (\S+)', incoming_msg.text)
     scope = s.group(1)
+    message = ""
     if scope not in get_policy_tags():
         return "Invalid policy scope"
     else:
+        session = current_session(incoming_msg.personId, incoming_msg.roomId)
+        if session:
+            _sessions.remove(session)
+            message = "Updating existing session; "
+        message = message + "Set policy scope for session to {}".format(scope)
         create_session(incoming_msg.personId, incoming_msg.roomId, scope)
-        return "Set policy scope for session to {}".format(scope)
+        return message
 
 def current_policy_scope(incoming_msg):
     person_id = incoming_msg.personId
