@@ -165,10 +165,10 @@ bot = SparkBot(bot_app_name, spark_bot_token=spark_token,
 # Add bot commands
 bot.commands = dict()
 bot.add_command('list policy tags', 'This will list the policy tags configured on APIC EM', list_policy_tags)
-bot.add_command('set policy scope \<tag name\>', 'This will set the policy scope that you wish to modify for the session', set_policy_scope)
+bot.add_command('set policy scope', 'This will set the policy scope that you wish to modify for the session', set_policy_scope)
 bot.add_command('current policy scope', 'This will return the current policy scope for the session', current_policy_scope)
-bot.add_command('search app \<string\>', 'This will return applications matching search criteria; if scope already set, it will also return the applications relevance level', search_app)
-bot.add_command('set relevance \<app name\> \<relevance level\>', 'This will set the relevance level for the provided app; ex. set relevance <app name> <relevance>', set_relevance)
+bot.add_command('search app', 'This will return applications matching search criteria; if scope already set, it will also return the applications relevance level', search_app)
+bot.add_command('set relevance', 'This will set the relevance level for the provided app; ex. set relevance facebook Business-Relevant', set_relevance)
 
 # Run bot
 bot.run(host='0.0.0.0', port=5000)
